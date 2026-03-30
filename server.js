@@ -55,10 +55,10 @@ const ingest = async (url = '') => {
     console.log("Ingest called");
     await client.deleteCollection({ name: WEBSITE_COLLECTION_NAME });
     const { head, body } = await fetchWebpage(url);
-    const trimmedHead = head.slice(0, 2000);
+    const trimmedHead = head.slice(0, 8000);
     const trimmedBody = body.slice(0, 8000);
-    // const headEmbeddings = await generateVectorEmbeddings({ text: trimmedHead });
-    // await addToChromaDB({ url, head: trimmedHead, embeddings: headEmbeddings });
+    const headEmbeddings = await generateVectorEmbeddings({ text: trimmedHead });
+    await addToChromaDB({ url, head: trimmedHead, embeddings: headEmbeddings });
     const bodyChunks = divideIntoChunks(trimmedBody);
     for (const chunk of bodyChunks) {
         //console.log(chunk);
@@ -95,7 +95,7 @@ const ask = async (question) => {
     });
 
     const contextBody = collectionResults.metadatas[0].map((e) => e.body).join("\n---\n");
-    //console.log(contextBody);
+    
     const sourceUrls = collectionResults.metadatas[0].map((e) => e.url).join(", ");
 
     const ai = new GoogleGenAI({apiKey:process.env.GEMINI_API_KEY});
